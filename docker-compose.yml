@@ -1,0 +1,252 @@
+version: "3.3"
+
+services:
+
+  consul:
+    command: -server -bootstrap
+    image: ${OL_CONSUL}
+    restart: always
+    ports:
+      - "8300"
+      - "8400"
+      - "8500:8500"
+      - "53"
+    networks:
+      - static-subnet
+
+  nginx:
+    image: ${OL_NGINX_VERSION}
+    restart: always
+    ports:
+      - "${OL_HTTP_PORT:-80}:80"
+    env_file: settings.env
+    environment:
+      NGINX_LOG_DIR: '/var/log/nginx/log'
+    volumes:
+      - 'nginx-log:/var/log/nginx/log'
+      - 'consul-template-log:/var/log/consul-template'
+    depends_on: [consul]
+    networks:
+      static-subnet:
+        ipv4_address: 172.16.172.16
+
+  reference-ui:
+    image: ${OL_REFERENCE_UI_VERSION}
+    restart: always
+    env_file: settings.env
+    depends_on: [consul]
+    networks:
+      - static-subnet
+
+  requisition:
+    image: ${OL_REQUISITION_VERSION}
+    restart: always
+    env_file: settings.env
+    environment:
+      JAVA_OPTS: '-server -Xmx1024m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      log:
+        condition: service_started
+    command: ["/run.sh"]
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  referencedata:
+    image: ${OL_REFERENCEDATA_VERSION}
+    restart: always
+    env_file: settings.env
+    environment:
+      JAVA_OPTS: '-server -Xmx1024m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      log:
+        condition: service_started
+    command: ["/run.sh"]
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  auth:
+    image: ${OL_AUTH_VERSION}
+    restart: always
+    env_file: settings.env
+    environment:
+      JAVA_OPTS: '-server -Xmx512m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      log:
+        condition: service_started
+    command: ["/run.sh"]
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  notification:
+    image: ${OL_NOTIFICATION_VERSION}
+    restart: always
+    env_file: settings.env
+    environment:
+      JAVA_OPTS: '-server -Xmx256m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      log:
+        condition: service_started
+    command: ["/run.sh"]
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  fulfillment:
+    image: ${OL_FULFILLMENT_VERSION}
+    restart: always
+    env_file: settings.env
+    environment:
+      JAVA_OPTS: '-server -Xmx512m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      log:
+        condition: service_started
+    command: ["/run.sh"]
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  stockmanagement:
+    image: ${OL_STOCKMANAGEMENT_VERSION}
+    restart: always
+    env_file: settings.env
+    environment:
+      JAVA_OPTS: '-server -Xmx1024m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      log:
+        condition: service_started
+    command: ["/run.sh"]
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  report:
+    image: ${OL_REPORT_VERSION}
+    restart: always
+    env_file: settings.env
+    environment:
+      JAVA_OPTS: '-server -Xmx256m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      log:
+        condition: service_started
+    command: ["/run.sh"]
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  db:
+    image: ${OL_POSTGRES_VERSION}
+    restart: always
+    env_file: settings.env
+    shm_size: 2gb
+    networks:
+      - static-subnet
+    command: postgres -c 'max_connections=400'
+    healthcheck:
+      test: psql -U postgres -d open_lmis -c '\q' || exit 1
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+    ports:
+      - "5432:5432"
+    volumes:
+      - 'db-data:/var/lib/postgresql/data'
+
+  redis:
+    image: ${OL_REDIS_VERSION}
+    restart: always
+    ports:
+      - "6379:6379"
+    depends_on: [consul]
+    networks:
+      - static-subnet
+
+  siglusapi:
+    image: ${OL_SIGLUSAPI_VERSION}
+    restart: always
+    env_file: settings.env
+    cap_add:
+      - SYS_RAWIO
+    devices:
+      - /dev/mem
+    environment:
+      JAVA_OPTS: '-server -Xmx1024m -Dlogging.config=/config/log/logback.xml'
+    depends_on:
+      db:
+        condition: service_healthy
+      consul:
+        condition: service_started
+      log:
+        condition: service_started
+      redis:
+        condition: service_started
+      requisition:
+        condition: service_started
+      referencedata:
+        condition: service_started
+      auth:
+        condition: service_started
+      fulfillment:
+        condition: service_started
+      stockmanagement:
+        condition: service_started
+      notification:
+        condition: service_started
+    command: [ "/run.sh" ]
+    ports:
+      - "3080:8080"
+    networks:
+      - static-subnet
+    volumes:
+      - './config:/config'
+
+  log:
+    image: ${OL_RSYSLOG_VERSION}
+    restart: always
+    volumes:
+      - 'syslog:/var/log'
+    depends_on:
+      - consul
+    networks:
+      - static-subnet
+
+networks:
+  static-subnet:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.0.0/16"
+
+volumes:
+  syslog:
+    external: false
+  nginx-log:
+    external: false
+  consul-template-log:
+    external: false
+  db-data:
+    external: false

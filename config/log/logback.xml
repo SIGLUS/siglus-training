@@ -1,0 +1,56 @@
+<configuration>
+
+  <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+    <Marker>PROFILER</Marker>
+    <OnMatch>ACCEPT</OnMatch>
+  </turboFilter>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>
+        %d{yyy-MM-dd HH:mm:ss} [%X{trace.id}] %-5level --- [%thread] %logger{36}.%M:%L - %msg%n 
+      </Pattern> 
+    </layout>
+  </appender>
+
+  <logger name="org.openlmis.auth" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.openlmis.cce" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.openlmis.fulfillment" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.openlmis.notification" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.openlmis.referencedata" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.openlmis.report" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.openlmis.requisition" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.openlmis.stockmanagement" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <logger name="org.siglus.siglusapi" level="INFO" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+  </logger>
+
+  <!-- Define the root logger log level -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>
