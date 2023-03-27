@@ -8,13 +8,13 @@ git clone https://github.com/SIGLUS/siglus-training.git
 # goto the folder siglus-training
 cd siglus-training
 
-# update settings.env file, ask TW to support, it's for security reason
+# replace settings.env file, ask TW to get the new settings.env file, it's for security reason
 
 # connect internet and pull docker images (this may take a long time depend on your network condition)
-docker-compose pull
+sudo docker-compose pull
 
 # start docker containers
-docker-compose up -d
+sudo docker-compose up -d
 
 # wait for about 10 minutes until all docker containers ready
 
@@ -31,10 +31,10 @@ open http://localhost
 ```shell
 # if your machine shutdown or restart, you can restart local training server
 # stop first
-docker-compose down
+sudo docker-compose down
 
 # then start
-docker-compose up -d
+sudo docker-compose up -d
 
 # wait for a few minutes
 
