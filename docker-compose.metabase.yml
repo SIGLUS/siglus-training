@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  metabase:
+    image: metabase/metabase:${METABASE_VERSION:-v0.49.6}
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=metabase
+      - MB_DB_PORT=5432
+      - MB_DB_USER=postgres
+      - MB_DB_PASS=p@ssw0rd
+      - MB_DB_HOST=localhost
+    ports:
+      - "3000:3000"
+    restart: always

@@ -20,4 +20,7 @@ gunzip -c "${dump_path}" | PGPASSWORD="${pgpassword}" psql -h "${db_dns}" -U pos
 echo "delete cdc_offset_backing"
 PGPASSWORD="${pgpassword}" psql -h "${db_dns}" -U postgres open_lmis -c "drop publication if exists dbz_publication;DELETE FROM localmachine.cdc_offset_backing;" || echo "fail to reset publication and offset backing"
 
+echo "reset password to 'password1'"
+PGPASSWORD="${pgpassword}" psql -h "${db_dns}" -U postgres open_lmis -c "update auth.auth_users set password='\$2a\$10\$P3B2GMVoZ44ViizInjnXi.u53oYaq73By4JJ5/1rBhEshFOP2gN0S'
+
 echo "restore done, need to clean cache"
